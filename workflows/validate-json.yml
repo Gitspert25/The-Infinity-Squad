@@ -1,0 +1,34 @@
+name: Validate User Papers JSON
+
+on:
+  pull_request:
+    paths:
+      - 'User Papers/**/*.json'
+  push:
+    paths:
+      - 'User Papers/**/*.json'
+
+jobs:
+  json-lint:
+    runs-on: ubuntu-latest
+    name: Check JSON files in User Papers
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install jq (JSON parser)
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Validate JSON files
+        run: |
+          files=$(find 'User Papers' -name '*.json')
+          echo "Found JSON files:"
+          echo "$files"
+          for file in $files; do
+            echo "Checking $file"
+            if ! jq empty "$file"; then
+              echo "::error file=$file::Invalid JSON syntax"
+              exit 1
+            fi
+          done
+          echo "All JSON files are valid!"
